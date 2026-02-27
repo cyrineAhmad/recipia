@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 14%;
+
+    --primary: 152 60% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 220 20% 14%;
+
+    --muted: 210 15% 95%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 152 50% 94%;
+    --accent-foreground: 152 60% 30%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 152 60% 42%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 10% 40%;
+    --sidebar-primary: 152 60% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 152 50% 94%;
+    --sidebar-accent-foreground: 152 60% 30%;
+    --sidebar-border: 220 13% 93%;
+    --sidebar-ring: 152 60% 42%;
+
+    --status-favorite: 0 84% 60%;
+    --status-favorite-bg: 0 84% 95%;
+    --status-to-try: 152 60% 42%;
+    --status-to-try-bg: 152 50% 94%;
+    --status-made-before: 220 60% 55%;
+    --status-made-before-bg: 220 60% 95%;
+
+    --chat-user: 152 50% 94%;
+    --chat-user-foreground: 220 20% 14%;
+    --chat-assistant: 0 0% 97%;
+    --chat-assistant-foreground: 220 20% 14%;
+  }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 210 20% 95%;
+    --card: 220 20% 11%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 20% 11%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 152 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 152 30% 18%;
+    --accent-foreground: 152 60% 70%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 152 60% 45%;
+    --sidebar-background: 220 20% 10%;
+    --sidebar-foreground: 210 15% 70%;
+    --sidebar-primary: 152 60% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 152 30% 18%;
+    --sidebar-accent-foreground: 152 60% 70%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 152 60% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'DM Sans', sans-serif;
+  }
+}

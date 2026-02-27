@@ -1,0 +1,30 @@
+# Environment variables
+.env
+.env.*
+
+# Dependencies (NEVER commit these!)
+node_modules/
+venv/
+env/
+.venv/
+
+# Logs
+*.log
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python cache 
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+build/
+*.egg-info/
+
+# Duplicate configs or temp files
+*.tmp
