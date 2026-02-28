@@ -189,6 +189,7 @@ const Index = () => {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
 
   const handleSubmitSuggestion = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -277,10 +278,21 @@ const Index = () => {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <AppSidebar userRole={userRole} activePage={activePage} onNavigate={setActivePage} />
+      <AppSidebar 
+        userRole={userRole} 
+        activePage={activePage} 
+        onNavigate={setActivePage}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader title={pageTitle} userRole={userRole} onLogout={handleLogout} />
-        <main className="flex-1 overflow-y-auto p-6">
+        <AppHeader 
+          title={pageTitle} 
+          userRole={userRole} 
+          onLogout={handleLogout}
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {(activePage === "recipes" || activePage === "manage") && (
             <>
               <div className="flex flex-col gap-4 mb-6">
@@ -291,7 +303,7 @@ const Index = () => {
                   {userRole === "admin" && activePage === "manage" && (
                   <button
                     onClick={() => { setFormRecipe(undefined); setShowForm(true); }}
-                    className="ml-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors shrink-0"
+                    className="sm:ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors shrink-0"
                   >
                     <Plus className="h-4 w-4" />
                     Add Recipe
@@ -314,7 +326,7 @@ const Index = () => {
                   onDelete={handleDelete}
                 />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
                   {recipes.map((recipe) => (
                     <RecipeCard
                       key={recipe.id}
