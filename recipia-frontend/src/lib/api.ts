@@ -28,6 +28,11 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
     throw new Error(error.detail || `HTTP error! status: ${response.status}`)
   }
   
+  // Handle 204 No Content responses
+  if (response.status === 204) {
+    return null
+  }
+  
   return response.json()
 }
 
