@@ -63,15 +63,15 @@ const ChatAssistant = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center z-50"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center z-50"
       >
-        <Zap className="h-6 w-6" />
+        <Zap className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
     );
   }
 
   return (
-    <div className="fixed top-0 right-0 h-screen w-96 bg-card border-l border-border shadow-xl flex flex-col z-50 animate-slide-in-right">
+    <div className="fixed inset-0 sm:inset-auto sm:top-0 sm:right-0 sm:h-screen sm:w-96 w-full bg-card border-l border-border shadow-xl flex flex-col z-50 animate-slide-in-right">
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
