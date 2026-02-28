@@ -5,6 +5,7 @@ import { Recipe, RecipeStatus, UserRole } from "@/types/recipe";
 import AppSidebar from "@/components/shared/AppSidebar";
 import AppHeader from "@/components/shared/AppHeader";
 import RecipeCard from "@/components/shared/RecipeCard";
+import RecipeCardSkeleton from "@/components/shared/RecipeCardSkeleton";
 import RecipeDetails from "@/components/shared/RecipeDetails";
 import SearchBar from "@/components/shared/SearchBar";
 import FilterPanel from "@/components/FilterPanel";
@@ -91,7 +92,7 @@ const Index = () => {
     },
   });
 
-  const { data: sharedRecipes = [] } = useQuery<Recipe[]>({
+  const { data: sharedRecipes = [], isLoading: isLoadingShared } = useQuery<Recipe[]>({
     queryKey: ["sharedRecipes"],
     queryFn: async () => {
       const apiRecipes = await api.sharing.getSharedWithMe();
@@ -317,15 +318,22 @@ const Index = () => {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activePage === "shared" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
-              {sharedRecipes.map((recipe) => (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  onClick={setSelectedRecipe}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-              {sharedRecipes.length === 0 && (
+              {isLoadingShared ? (
+                <>
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <RecipeCardSkeleton key={index} />
+                  ))}
+                </>
+              ) : sharedRecipes.length > 0 ? (
+                sharedRecipes.map((recipe) => (
+                  <RecipeCard
+                    key={recipe.id}
+                    recipe={recipe}
+                    onClick={setSelectedRecipe}
+                    onStatusChange={handleStatusChange}
+                  />
+                ))
+              ) : (
                 <div className="col-span-full text-center py-12">
                   <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-20" />
                   <p className="text-muted-foreground">No recipes have been shared with you yet.</p>
@@ -368,15 +376,22 @@ const Index = () => {
                 />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
-                  {recipes.map((recipe) => (
-                    <RecipeCard
-                      key={recipe.id}
-                      recipe={recipe}
-                      onClick={setSelectedRecipe}
-                      onStatusChange={handleStatusChange}
-                    />
-                  ))}
-                  {recipes.length === 0 && (
+                  {isLoading ? (
+                    <>
+                      {Array.from({ length: 8 }).map((_, index) => (
+                        <RecipeCardSkeleton key={index} />
+                      ))}
+                    </>
+                  ) : recipes.length > 0 ? (
+                    recipes.map((recipe) => (
+                      <RecipeCard
+                        key={recipe.id}
+                        recipe={recipe}
+                        onClick={setSelectedRecipe}
+                        onStatusChange={handleStatusChange}
+                      />
+                    ))
+                  ) : (
                     <p className="col-span-full text-center text-muted-foreground py-12">No recipes found.</p>
                   )}
                 </div>
