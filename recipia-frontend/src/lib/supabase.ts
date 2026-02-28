@@ -87,6 +87,70 @@ export type Database = {
           status?: 'favorite' | 'to_try' | 'made_before'
         }
       }
+      recipe_shares: {
+        Row: {
+          id: string
+          recipe_id: string
+          shared_by: string
+          shared_with: string
+          permission: 'view' | 'edit'
+          created_at: string
+        }
+        Insert: {
+          recipe_id: string
+          shared_by: string
+          shared_with: string
+          permission?: 'view' | 'edit'
+        }
+        Update: {
+          permission?: 'view' | 'edit'
+        }
+      }
+      public_recipe_links: {
+        Row: {
+          id: string
+          recipe_id: string
+          created_by: string
+          is_active: boolean
+          created_at: string
+          expires_at: string | null
+        }
+        Insert: {
+          recipe_id: string
+          created_by: string
+          is_active?: boolean
+          expires_at?: string | null
+        }
+        Update: {
+          is_active?: boolean
+          expires_at?: string | null
+        }
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'recipe_shared' | 'recipe_updated' | 'recipe_deleted'
+          title: string
+          message: string
+          recipe_id: string | null
+          shared_by: string | null
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          type: 'recipe_shared' | 'recipe_updated' | 'recipe_deleted'
+          title: string
+          message: string
+          recipe_id?: string | null
+          shared_by?: string | null
+          is_read?: boolean
+        }
+        Update: {
+          is_read?: boolean
+        }
+      }
     }
   }
 }

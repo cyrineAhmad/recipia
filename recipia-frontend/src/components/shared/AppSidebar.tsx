@@ -1,5 +1,5 @@
 import { UserRole } from "@/types/recipe";
-import { UtensilsCrossed, BookOpen, User, ChefHat, Sparkles, Inbox } from "lucide-react";
+import { UtensilsCrossed, BookOpen, User, ChefHat, Sparkles, Inbox, Users } from "lucide-react";
 
 interface AppSidebarProps {
   userRole: UserRole;
@@ -12,6 +12,7 @@ interface AppSidebarProps {
 const AppSidebar = ({ userRole, activePage, onNavigate, isOpen = true, onClose }: AppSidebarProps) => {
   const navItems = [
     { id: "recipes", label: "Recipes", icon: BookOpen, roles: ["admin", "user"] as UserRole[] },
+    { id: "shared", label: "Shared With Me", icon: Users, roles: ["admin", "user"] as UserRole[] },
     { id: "manage", label: "Manage Recipes", icon: UtensilsCrossed, roles: ["admin"] as UserRole[] },
     { id: "suggestions", label: "Recipe Suggestions", icon: Inbox, roles: ["admin"] as UserRole[] },
     { id: "suggest", label: "Suggest Recipe", icon: Sparkles, roles: ["user"] as UserRole[] },

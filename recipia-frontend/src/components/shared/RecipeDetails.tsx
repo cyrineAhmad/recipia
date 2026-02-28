@@ -1,5 +1,6 @@
 import { Recipe, RecipeStatus } from "@/types/recipe";
 import StatusBadge from "./StatusBadge";
+import { ShareRecipeDialog } from "./ShareRecipeDialog";
 import { Clock, X, ArrowLeft, Heart, Bookmark, ChefHat } from "lucide-react";
 import {
   Tooltip,
@@ -85,6 +86,10 @@ const RecipeDetails = ({ recipe, onClose, onStatusChange, onRecipeUpdate }: Reci
               })}
             </div>
           )}
+          <ShareRecipeDialog
+            recipeId={recipe.id}
+            recipeName={recipe.name}
+          />
           <span className="flex items-center gap-1 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             {recipe.prepTimeMinutes} min

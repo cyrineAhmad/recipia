@@ -28,6 +28,11 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
     throw new Error(error.detail || `HTTP error! status: ${response.status}`)
   }
   
+  // Handle 204 No Content responses
+  if (response.status === 204) {
+    return null
+  }
+  
   return response.json()
 }
 
@@ -193,6 +198,96 @@ export const api = {
     
     getChatHistory: async (limit: number = 20) => {
       return apiCall(`/ai/chat-history?limit=${limit}`)
+    },
+  },
+
+  // Sharing endpoints
+  sharing: {
+    shareRecipe: async (recipeId: string, email: string, permission: 'view' | 'edit' = 'view') => {
+      return apiCall(`/sharing/recipes/${recipeId}/share`, {
+        method: 'POST',
+        body: JSON.stringify({
+          shared_with_email: email,
+          permission,
+        }),
+      })
+    },
+
+    getSharedWithMe: async () => {
+      return apiCall('/sharing/recipes/shared-with-me')
+    },
+
+    getRecipeShares: async (recipeId: string) => {
+      return apiCall(`/sharing/recipes/${recipeId}/shares`)
+    },
+
+    removeShare: async (recipeId: string, shareId: string) => {
+      return apiCall(`/sharing/recipes/${recipeId}/share/${shareId}`, {
+        method: 'DELETE',
+      })
+    },
+
+    createPublicLink: async (recipeId: string, expiresAt?: string) => {
+      return apiCall(`/sharing/recipes/${recipeId}/public-link`, {
+        method: 'POST',
+        body: JSON.stringify({
+          recipe_id: recipeId,
+          expires_at: expiresAt,
+        }),
+      })
+    },
+
+    getPublicLink: async (recipeId: string) => {
+      return apiCall(`/sharing/recipes/${recipeId}/public-link`)
+    },
+
+    getPublicRecipe: async (linkId: string) => {
+      return apiCall(`/sharing/recipes/public/${linkId}`)
+    },
+
+    deletePublicLink: async (recipeId: string) => {
+      return apiCall(`/sharing/recipes/${recipeId}/public-link`, {
+        method: 'DELETE',
+      })
+    },
+  },
+
+  // Notifications endpoints
+  notifications: {
+    getAll: async (unreadOnly: boolean = false, limit: number = 50) => {
+      const params = new URLSearchParams()
+      params.append('limit', limit.toString())
+      if (unreadOnly) params.append('unread_only', 'true')
+      return apiCall(`/notifications?${params.toString()}`)
+    },
+
+    getUnreadCount: async () => {
+      return apiCall('/notifications/unread-count')
+    },
+
+    markAsRead: async (notificationIds: string[]) => {
+      return apiCall('/notifications/mark-read', {
+        method: 'POST',
+        body: JSON.stringify({ notification_ids: notificationIds }),
+      })
+    },
+
+    markAllAsRead: async () => {
+      return apiCall('/notifications/mark-all-read', {
+        method: 'POST',
+      })
+    },
+
+    delete: async (notificationId: string) => {
+      return apiCall(`/notifications/${notificationId}`, {
+        method: 'DELETE',
+      })
+    },
+
+    deleteAll: async () => {
+      return apiCall('/notifications', {
+        method: 'DELETE',
+      })
     },
   },
 }

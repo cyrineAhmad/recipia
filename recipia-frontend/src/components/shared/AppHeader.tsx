@@ -1,5 +1,6 @@
 import { UserRole } from "@/types/recipe";
 import { Menu } from "lucide-react";
+import { NotificationBell } from "./NotificationBell";
 
 interface AppHeaderProps {
   title: string;
@@ -23,6 +24,7 @@ const AppHeader = ({ title, userRole, onLogout, onMenuClick }: AppHeaderProps) =
       <h1 className="text-lg sm:text-xl font-semibold text-foreground">{title}</h1>
     </div>
     <div className="flex items-center gap-2 sm:gap-3">
+      <NotificationBell />
       {userRole === "admin" && (
         <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-muted">
           <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs sm:text-sm font-semibold">

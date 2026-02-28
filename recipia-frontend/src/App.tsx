@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
 import { AuthCallback } from "./pages/AuthCallback";
+import { PublicRecipe } from "./pages/PublicRecipe";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/recipes/public/:linkId" element={<PublicRecipe />} />
           
           {/* Protected routes - authentication required */}
           <Route 
