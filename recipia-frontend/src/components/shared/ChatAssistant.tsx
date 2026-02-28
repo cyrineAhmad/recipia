@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Zap, X, Send } from "lucide-react";
 import { api } from "@/lib/api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -94,7 +96,15 @@ const ChatAssistant = () => {
                   : "bg-chat-assistant text-chat-assistant-foreground rounded-bl-md"
               }`}
             >
-              {msg.content}
+              {msg.role === "assistant" ? (
+                <div className="prose prose-sm prose-slate dark:prose-invert max-w-none [&>*]:my-1 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                msg.content
+              )}
             </div>
           </div>
         ))}
