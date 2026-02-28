@@ -28,6 +28,13 @@ const RecipeForm = ({ recipe, onSave, onCancel }: RecipeFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that an image is uploaded
+    if (!image || image.trim() === "") {
+      setUploadError("Please upload an image for the recipe.");
+      return;
+    }
+    
     onSave({
       ...(recipe?.id ? { id: recipe.id } : {}),
       name,
@@ -35,7 +42,7 @@ const RecipeForm = ({ recipe, onSave, onCancel }: RecipeFormProps) => {
       instructions,
       cuisineType,
       prepTimeMinutes,
-      image: image || "/images/pasta-carbonara.jpg",
+      image: image,
     });
   };
 
@@ -165,8 +172,10 @@ const RecipeForm = ({ recipe, onSave, onCancel }: RecipeFormProps) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Image (admin upload)</label>
-            <p className="text-xs text-muted-foreground mb-2">Upload JPEG, PNG, WebP, or GIF (max 5MB).</p>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Image <span className="text-destructive">*</span>
+            </label>
+            <p className="text-xs text-muted-foreground mb-2">Upload JPEG, PNG, WebP, or GIF (max 5MB). Required.</p>
             <div className="flex flex-col sm:flex-row gap-3">
               <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-input bg-muted/50 text-muted-foreground hover:bg-muted transition-colors cursor-pointer text-sm">
                 <Upload className="h-4 w-4" />
@@ -184,6 +193,9 @@ const RecipeForm = ({ recipe, onSave, onCancel }: RecipeFormProps) => {
                   <img src={image} alt="Preview" className="h-12 w-12 rounded-lg object-cover" />
                   <span className="text-xs text-muted-foreground truncate max-w-[200px]">{image}</span>
                 </div>
+              )}
+              {!image && (
+                <p className="text-xs text-destructive self-center">No image uploaded yet</p>
               )}
             </div>
             {uploadError && <p className="text-sm text-destructive mt-1">{uploadError}</p>}

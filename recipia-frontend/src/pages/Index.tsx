@@ -11,6 +11,7 @@ import FilterPanel from "@/components/FilterPanel";
 import ChatAssistant from "@/components/shared/ChatAssistant";
 import RecipeForm from "@/components/admin/RecipeForm";
 import ManageRecipesTable from "@/components/admin/ManageRecipesTable";
+import SuggestionsManager from "@/components/admin/SuggestionsManager";
 import { Plus, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,7 +27,7 @@ function mapApiRecipeToRecipe(apiRecipe: any): Recipe {
       : apiRecipe.instructions || "",
     cuisineType: apiRecipe.cuisine_type || "",
     prepTimeMinutes: apiRecipe.prep_time_minutes ?? 0,
-    image: apiRecipe.image_url || "/images/pasta-carbonara.jpg",
+    image: apiRecipe.image_url || "",
     status: apiRecipe.status as RecipeStatus | undefined,
   };
 }
@@ -159,6 +160,13 @@ const Index = () => {
       } else {
         await createRecipeMutation.mutateAsync(data);
       }
+      
+      // Call the success callback if it exists (from suggestion)
+      const callback = (window as any).__suggestionSuccessCallback;
+      if (callback && typeof callback === 'function') {
+        await callback();
+        delete (window as any).__suggestionSuccessCallback;
+      }
     } catch (err) {
       console.error("Failed to save recipe:", err);
       return;
@@ -244,9 +252,28 @@ const Index = () => {
       ? "Browse Recipes"
       : activePage === "profile"
       ? "Profile"
+      : activePage === "suggestions"
+      ? "Recipe Suggestions"
       : activePage === "suggest"
       ? "Suggest a Recipe"
       : "Recipia";
+
+  const handleAddSuggestionToRecipes = (suggestion: any, onSuccess: () => void) => {
+    // Pre-populate form with suggestion data
+    const suggestionAsRecipe: Recipe = {
+      id: "",
+      name: suggestion.title,
+      ingredients: [], // Admin will need to add these
+      instructions: suggestion.description, // Use description as starting point for instructions
+      cuisineType: "",
+      prepTimeMinutes: 0,
+      image: "", // Admin must upload an image
+    };
+    setFormRecipe(suggestionAsRecipe);
+    setShowForm(true);
+    
+    (window as any).__suggestionSuccessCallback = onSuccess;
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -322,6 +349,12 @@ const Index = () => {
                   <p className="text-xs text-muted-foreground mt-2">Admin account with full recipe management access.</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {activePage === "suggestions" && userRole === "admin" && (
+            <div className="max-w-6xl mx-auto">
+              <SuggestionsManager onAddToRecipes={handleAddSuggestionToRecipes} />
             </div>
           )}
 
