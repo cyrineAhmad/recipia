@@ -11,7 +11,7 @@ import FilterPanel from "@/components/FilterPanel";
 import ChatAssistant from "@/components/shared/ChatAssistant";
 import RecipeForm from "@/components/admin/RecipeForm";
 import ManageRecipesTable from "@/components/admin/ManageRecipesTable";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -176,6 +176,12 @@ const Index = () => {
   const [isSubmittingSuggestion, setIsSubmittingSuggestion] = useState(false);
   const [suggestionMessage, setSuggestionMessage] = useState<string | null>(null);
 
+  const [ingredientsInput, setIngredientsInput] = useState("");
+  const [ingredientsList, setIngredientsList] = useState<string[]>([]);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiError, setAiError] = useState<string | null>(null);
+
   const handleSubmitSuggestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!suggestTitle.trim() || !suggestDescription.trim() || !user) return;
@@ -195,6 +201,34 @@ const Index = () => {
       setSuggestionMessage("Could not submit your suggestion. Please try again.");
     } finally {
       setIsSubmittingSuggestion(false);
+    }
+  };
+
+  const handleAddIngredient = () => {
+    const trimmed = ingredientsInput.trim();
+    if (trimmed && !ingredientsList.includes(trimmed)) {
+      setIngredientsList([...ingredientsList, trimmed]);
+      setIngredientsInput("");
+    }
+  };
+
+  const handleRemoveIngredient = (ingredient: string) => {
+    setIngredientsList(ingredientsList.filter(i => i !== ingredient));
+  };
+
+  const handleGetAISuggestions = async () => {
+    if (ingredientsList.length === 0) return;
+    setIsGeneratingAI(true);
+    setAiError(null);
+    setAiSuggestions([]);
+    try {
+      const result = await api.ai.suggestByIngredients(ingredientsList);
+      setAiSuggestions(result.suggested_recipes || []);
+    } catch (error: any) {
+      console.error("Error getting AI suggestions", error);
+      setAiError(error?.message || "Failed to get AI suggestions. Please try again.");
+    } finally {
+      setIsGeneratingAI(false);
     }
   };
 
@@ -292,46 +326,143 @@ const Index = () => {
           )}
 
           {activePage === "suggest" && (
-            <div className="max-w-xl">
-              <div className="bg-card rounded-xl border border-border p-6 space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Suggest a New Recipe</h2>
-                <p className="text-sm text-muted-foreground">
-                  Found a great recipe? Share it with the Recipia team. Admins can review and add it to the main
-                  recipes.
-                </p>
-                <form onSubmit={handleSubmitSuggestion} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">Recipe title</label>
-                    <input
-                      value={suggestTitle}
-                      onChange={(e) => setSuggestTitle(e.target.value)}
-                      required
-                      className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
-                      placeholder="e.g. Spicy Garlic Butter Shrimp"
-                    />
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Manual Recipe Suggestion */}
+                <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Plus className="h-4 w-4 text-primary" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-foreground">Share a Recipe</h2>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1.5">Why is it good?</label>
-                    <textarea
-                      value={suggestDescription}
-                      onChange={(e) => setSuggestDescription(e.target.value)}
-                      required
-                      rows={4}
-                      className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm resize-none"
-                      placeholder="Share the link, key ingredients, or what makes it special..."
-                    />
+                  <p className="text-sm text-muted-foreground">
+                    Found a great recipe? Share it with the Recipia team. Admins will review and add it to the collection.
+                  </p>
+                  <form onSubmit={handleSubmitSuggestion} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1.5">Recipe title</label>
+                      <input
+                        value={suggestTitle}
+                        onChange={(e) => setSuggestTitle(e.target.value)}
+                        required
+                        className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+                        placeholder="e.g. Spicy Garlic Butter Shrimp"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1.5">Why is it good?</label>
+                      <textarea
+                        value={suggestDescription}
+                        onChange={(e) => setSuggestDescription(e.target.value)}
+                        required
+                        rows={4}
+                        className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm resize-none"
+                        placeholder="Share the link, key ingredients, or what makes it special..."
+                      />
+                    </div>
+                    {suggestionMessage && (
+                      <p className="text-sm text-muted-foreground">{suggestionMessage}</p>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={isSubmittingSuggestion}
+                      className="w-full px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    >
+                      {isSubmittingSuggestion ? "Submitting..." : "Submit suggestion"}
+                    </button>
+                  </form>
+                </div>
+
+                {/* AI Recipe Suggestions by Ingredients */}
+                <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-accent-foreground" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-foreground">AI Recipe Ideas</h2>
                   </div>
-                  {suggestionMessage && (
-                    <p className="text-sm text-muted-foreground">{suggestionMessage}</p>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={isSubmittingSuggestion}
-                    className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                  >
-                    {isSubmittingSuggestion ? "Submitting..." : "Submit suggestion"}
-                  </button>
-                </form>
+                  <p className="text-sm text-muted-foreground">
+                    Have ingredients but not sure what to cook? Let AI suggest recipe ideas for you!
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1.5">Your ingredients</label>
+                      <div className="flex gap-2">
+                        <input
+                          value={ingredientsInput}
+                          onChange={(e) => setIngredientsInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddIngredient();
+                            }
+                          }}
+                          className="flex-1 px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+                          placeholder="e.g. chicken, rice, tomatoes"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddIngredient}
+                          className="px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm font-medium hover:bg-muted transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+
+                    {ingredientsList.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {ingredientsList.map((ingredient, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-sm"
+                          >
+                            {ingredient}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveIngredient(ingredient)}
+                              className="hover:text-foreground transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleGetAISuggestions}
+                      disabled={ingredientsList.length === 0 || isGeneratingAI}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:bg-accent/80 disabled:opacity-50 transition-colors"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      {isGeneratingAI ? "Generating ideas..." : "Get AI suggestions"}
+                    </button>
+
+                    {aiError && (
+                      <p className="text-sm text-destructive">{aiError}</p>
+                    )}
+
+                    {aiSuggestions.length > 0 && (
+                      <div className="pt-2">
+                        <h3 className="text-sm font-medium text-foreground mb-2">Suggested recipes:</h3>
+                        <ul className="space-y-2">
+                          {aiSuggestions.map((suggestion, index) => (
+                            <li
+                              key={index}
+                              className="text-sm text-muted-foreground pl-3 border-l-2 border-accent"
+                            >
+                              {suggestion}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}

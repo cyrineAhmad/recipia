@@ -174,7 +174,10 @@ Return the improved recipe in this JSON format:
         ingredients_str = ", ".join(ingredients)
         
         system_prompt = """You are a creative chef. Suggest 5 recipe ideas that can be made 
-with the given ingredients. Be creative but practical. Return ONLY a JSON array of recipe names."""
+with the given ingredients. Be creative but practical. 
+
+IMPORTANT: Return ONLY a JSON array of recipe names, nothing else. 
+Example format: ["Recipe Name 1", "Recipe Name 2", "Recipe Name 3"]"""
 
         messages = [
             {"role": "system", "content": system_prompt},
@@ -190,10 +193,13 @@ with the given ingredients. Be creative but practical. Return ONLY a JSON array 
             )
             
             content = response.choices[0].message.content
-            suggestions = self._extract_json(content)
+            print(f"AI Response for ingredients {ingredients_str}: {content}")  # Debug log
+            suggestions = self._extract_json_array(content)
+            print(f"Extracted suggestions: {suggestions}")  # Debug log
             
             return suggestions if isinstance(suggestions, list) else []
         except Exception as e:
+            print(f"Error in suggest_recipes_based_on_ingredients: {str(e)}")  # Debug log
             return []
     
     def _extract_json(self, content: str) -> Dict:
@@ -211,6 +217,25 @@ with the given ingredients. Be creative but practical. Return ONLY a JSON array 
             return {"error": "Could not parse response", "raw": content}
         except json.JSONDecodeError:
             return {"error": "Invalid JSON", "raw": content}
+    
+    def _extract_json_array(self, content: str) -> List[str]:
+        """Extract JSON array from AI response"""
+        try:
+            # Try to find JSON array in the response
+            start_idx = content.find('[')
+            end_idx = content.rfind(']') + 1
+            
+            if start_idx != -1 and end_idx > start_idx:
+                json_str = content[start_idx:end_idx]
+                result = json.loads(json_str)
+                return result if isinstance(result, list) else []
+            
+            # If no JSON array found, try to parse entire content
+            result = json.loads(content)
+            return result if isinstance(result, list) else []
+        except json.JSONDecodeError:
+            # If parsing fails, return empty list
+            return []
     
     def _generate_suggestions(self, message: str, response: str) -> List[str]:
         """Generate follow-up suggestions based on conversation"""
