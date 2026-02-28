@@ -17,53 +17,43 @@ router = APIRouter(prefix="/ai", tags=["AI Assistant"])
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat_with_ai(
-    chat_data: ChatMessage,
-    current_user: User = Depends(get_current_user),
-):
-    """Chat with AI cooking assistant (authenticated users only)."""
+async def chat_with_ai(chat_data: ChatMessage, current_user: User = Depends(get_current_user)):
+    supabase = get_supabase()
+    context = None
+
+    recipes = (
+        supabase.table("recipes")
+        .select("name, cuisine_type")
+        .eq("created_by", str(current_user.id))
+        .limit(5)
+        .execute()
+    )
+    if recipes.data:
+        context = {
+            "user_recipes": [r["name"] for r in recipes.data],
+            "favorite_cuisines": list({r["cuisine_type"] for r in recipes.data if r.get("cuisine_type")}),
+        }
+
     try:
-        supabase = get_supabase()
-
-        context = None
-        recipes = (
-            supabase.table("recipes")
-            .select("name, cuisine_type")
-            .eq("created_by", str(current_user.id))
-            .limit(5)
-            .execute()
-        )
-
-        if recipes.data:
-            context = {
-                "user_recipes": [r["name"] for r in recipes.data],
-                "favorite_cuisines": list(
-                    {
-                        r["cuisine_type"]
-                        for r in recipes.data
-                        if r.get("cuisine_type")
-                    }
-                ),
-            }
-
         result = await ai_service.chat(chat_data.message, context)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI service error: {e}")
 
+    try:
         supabase.table("chat_messages").insert(
             {
                 "user_id": str(current_user.id),
                 "message": chat_data.message,
-                "response": result["response"],
+                "response": result.get("response", ""),
             }
         ).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database insert error: {e}")
 
-        return ChatResponse(**result)
-
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(
-            status_code=500, detail="AI assistant is currently unavailable"
-        )
+    return ChatResponse(
+        response=result.get("response", ""),
+        suggestions=result.get("suggestions", [])
+    )
 
 
 @router.post("/generate-recipe")

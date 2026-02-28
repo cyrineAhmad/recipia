@@ -6,7 +6,7 @@ import json
 class AIService:
     def __init__(self):
         self.client = Groq(api_key=settings.groq_api_key)
-        self.model = "mixtral-8x7b-32768"  # or "llama2-70b-4096"
+        self.model = "llama-3.3-70b-versatile" # or "llama2-70b-4096"
     
     async def chat(self, message: str, context: Optional[Dict] = None) -> Dict:
         """General cooking/recipe chat assistant"""

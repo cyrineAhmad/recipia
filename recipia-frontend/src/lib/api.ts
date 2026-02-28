@@ -32,10 +32,9 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
 }
 
 export const api = {
-  // Auth endpoints - Use Supabase directly for better compatibility
+  // Auth endpoints - All authentication handled by Supabase directly
   auth: {
     signUp: async (email: string, password: string, fullName?: string): Promise<{ user: unknown; session: unknown } | null> => {
-      console.log('[AUTH] Starting signup...')
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -46,60 +45,18 @@ export const api = {
         },
       })
       
-      console.log('[AUTH] Signup response:', {
-        hasUser: !!data?.user,
-        hasSession: !!data?.session,
-        error: error?.message
-      })
-      
       if (error) throw error
       return data as { user: unknown; session: unknown } | null
     },
     
     signIn: async (email: string, password: string) => {
-      console.log('[AUTH] Starting login...')
-      // Use backend login (works reliably) then set session in Supabase client
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
       
-      console.log('[AUTH] Login response status:', res.status)
-      
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: 'Login failed' }))
-        console.error('[AUTH] Login failed:', err)
-        throw new Error(err.detail || 'Login failed')
-      }
-      
-      const responseData = await res.json()
-      console.log('[AUTH] Login response data:', { 
-        hasSession: !!responseData.session,
-        hasAccessToken: !!responseData.session?.access_token,
-        hasRefreshToken: !!responseData.session?.refresh_token,
-        user: responseData.user
-      })
-      
-      const { session } = responseData
-      if (!session?.access_token || !session?.refresh_token) {
-        throw new Error('Invalid login response')
-      }
-      
-      console.log('[AUTH] Setting session in Supabase client...')
-      // Set session directly - the auth state change listener will trigger
-      const { data, error } = await supabase.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-      })
-      
-      if (error) {
-        console.error('[AUTH] setSession error:', error)
-        throw error
-      }
-      
-      console.log('[AUTH] Session set successfully:', { hasData: !!data.session })
-      return { data: { session: data.session } }
+      if (error) throw error
+      return data
     },
     
     signInWithGoogle: async () => {

@@ -25,22 +25,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('[AUTH DEBUG] fetchProfile called for:', userId)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
-      console.log('[AUTH DEBUG] fetchProfile result:', { data, error })
       if (error) {
-        console.warn('[AUTH DEBUG] Profile error (non-critical):', error)
         setProfile(null)
         return
       }
       setProfile(data)
     } catch (error) {
-      console.error('[AUTH DEBUG] Profile fetch error:', error)
       setProfile(null)
     }
   }
@@ -49,27 +45,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true
     
     const initAuth = async () => {
-      console.log('[AUTH DEBUG] initAuth called')
-  
       try {
         const res = await supabase.auth.getSession()
-        console.log('[AUTH DEBUG] getSession raw result:', res)
-  
-        // safe destructuring
         const session = res?.data?.session ?? null
         
         if (!mounted) return
         
         setSession(session)
         setUser(session?.user ?? null)
-        console.log('[AUTH DEBUG] session set:', session)
   
         if (session?.user) {
-          console.log('[AUTH DEBUG] fetching profile for user:', session.user.id)
           fetchProfile(session.user.id)
         }
       } catch (err) {
-        console.error('[AUTH DEBUG] getSession error:', err)
         if (!mounted) return
         setSession(null)
         setUser(null)
@@ -77,7 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } finally {
         if (mounted) {
           setLoading(false)
-          console.log('[AUTH DEBUG] loading finished')
         }
       }
     }
@@ -86,17 +73,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        console.log('[AUTH DEBUG] onAuthStateChange:', _event, session)
-        
-        if (!mounted) {
-          console.log('[AUTH DEBUG] ignoring auth change, component unmounted')
-          return
-        }
+        if (!mounted) return
         
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
-        console.log('[AUTH DEBUG] loading finished after state change')
   
         if (session?.user) {
           fetchProfile(session.user.id)
@@ -107,7 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
   
     return () => {
-      console.log('[AUTH DEBUG] unsubscribing auth state')
       mounted = false
       subscription.unsubscribe()
     }
@@ -118,14 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
-    console.log('[AUTH DEBUG] signIn called with email:', email)
-    try {
-      const result = await api.auth.signIn(email, password)
-      console.log('[AUTH DEBUG] signIn API result:', result)
-    } catch (err) {
-      console.error('[AUTH DEBUG] signIn error:', err)
-      throw err
-    }
+    await api.auth.signIn(email, password)
   }
 
   const signInWithGoogle = async () => {
