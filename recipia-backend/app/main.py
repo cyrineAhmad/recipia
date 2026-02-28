@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app import auth
-from app.routes import recipes, ai
+from app.routes import recipes, ai, sharing, notifications
 
 app = FastAPI(
     title="Recipia API",
@@ -23,6 +23,8 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(recipes.router)
 app.include_router(ai.router)
+app.include_router(sharing.router)
+app.include_router(notifications.router)
 
 
 @app.get("/")

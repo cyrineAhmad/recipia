@@ -68,6 +68,50 @@ async def get_current_user(
         )
 
 
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+        HTTPBearer(auto_error=False)
+    ),
+) -> Optional[User]:
+    """
+    Get authenticated user if token is provided, otherwise return None.
+    Used for endpoints that work with or without authentication.
+    """
+    if not credentials:
+        return None
+
+    supabase = get_supabase()
+
+    try:
+        response = supabase.auth.get_user(credentials.credentials)
+
+        if not response.user:
+            return None
+
+        # Fetch role from profiles table
+        try:
+            profile = (
+                supabase.table("profiles")
+                .select("*")
+                .eq("id", response.user.id)
+                .single()
+                .execute()
+            )
+            profile_data = profile.data if profile.data else {}
+        except Exception:
+            profile_data = {}
+
+        return User(
+            id=response.user.id,
+            email=response.user.email,
+            full_name=profile_data.get("full_name"),
+            role=profile_data.get("role", "user"),
+        )
+
+    except Exception:
+        return None
+
+
 async def require_admin(current_user: User = Depends(get_current_user)) -> User:
     """
     Require user to be admin.

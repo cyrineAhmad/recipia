@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Recipe, RecipeStatus, UserRole } from "@/types/recipe";
 import AppSidebar from "@/components/shared/AppSidebar";
@@ -12,7 +12,7 @@ import ChatAssistant from "@/components/shared/ChatAssistant";
 import RecipeForm from "@/components/admin/RecipeForm";
 import ManageRecipesTable from "@/components/admin/ManageRecipesTable";
 import SuggestionsManager from "@/components/admin/SuggestionsManager";
-import { Plus, Sparkles, X } from "lucide-react";
+import { Plus, Sparkles, X, Users } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -48,12 +48,24 @@ function mapRecipeToApiPayload(recipe: Omit<Recipe, "id" | "status">) {
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile, user, signOut } = useAuth();
   const userRole: UserRole = profile?.role === "admin" ? "admin" : "user";
 
   const queryClient = useQueryClient();
 
   const [activePage, setActivePage] = useState("recipes");
+  
+  // Handle page query parameter from notifications
+  useEffect(() => {
+    const pageParam = searchParams.get('page');
+    if (pageParam === 'shared') {
+      setActivePage('shared');
+      // Clear the query parameter
+      navigate('/', { replace: true });
+    }
+  }, [searchParams, navigate]);
+
   const [search, setSearch] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("");
   const [prepTimeFilter, setPrepTimeFilter] = useState("");
@@ -75,6 +87,14 @@ const Index = () => {
       if (cuisineFilter) params.cuisine_type = cuisineFilter;
       if (prepTimeMax != null) params.prep_time_max = prepTimeMax;
       const apiRecipes = await api.recipes.getAll(params);
+      return apiRecipes.map(mapApiRecipeToRecipe);
+    },
+  });
+
+  const { data: sharedRecipes = [] } = useQuery<Recipe[]>({
+    queryKey: ["sharedRecipes"],
+    queryFn: async () => {
+      const apiRecipes = await api.sharing.getSharedWithMe();
       return apiRecipes.map(mapApiRecipeToRecipe);
     },
   });
@@ -251,6 +271,8 @@ const Index = () => {
       ? "Manage Recipes"
       : activePage === "recipes"
       ? "Browse Recipes"
+      : activePage === "shared"
+      ? "Shared With Me"
       : activePage === "profile"
       ? "Profile"
       : activePage === "suggestions"
@@ -293,6 +315,25 @@ const Index = () => {
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {activePage === "shared" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+              {sharedRecipes.map((recipe) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  onClick={setSelectedRecipe}
+                  onStatusChange={handleStatusChange}
+                />
+              ))}
+              {sharedRecipes.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-20" />
+                  <p className="text-muted-foreground">No recipes have been shared with you yet.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {(activePage === "recipes" || activePage === "manage") && (
             <>
               <div className="flex flex-col gap-4 mb-6">

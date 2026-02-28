@@ -75,3 +75,52 @@ class ImproveRecipeRequest(BaseModel):
         default="detailed", 
         pattern="^(detailed|simpler|healthier)$"
     )
+
+# ============= Sharing Models =============
+class RecipeShareCreate(BaseModel):
+    shared_with_email: str = Field(..., description="Email of the user to share with")
+    permission: str = Field(default="view", pattern="^(view|edit)$")
+
+class RecipeShare(BaseModel):
+    id: UUID
+    recipe_id: UUID
+    shared_by: UUID
+    shared_with: UUID
+    permission: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PublicLinkCreate(BaseModel):
+    recipe_id: UUID
+    expires_at: Optional[datetime] = None
+
+class PublicLink(BaseModel):
+    id: UUID
+    recipe_id: UUID
+    created_by: UUID
+    is_active: bool
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+# ============= Notification Models =============
+class Notification(BaseModel):
+    id: UUID
+    user_id: UUID
+    type: str
+    title: str
+    message: str
+    recipe_id: Optional[UUID] = None
+    shared_by: Optional[UUID] = None
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class NotificationMarkRead(BaseModel):
+    notification_ids: List[UUID] = Field(..., min_items=1)
